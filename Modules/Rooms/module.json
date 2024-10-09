@@ -1,0 +1,11 @@
+{
+    "name": "Rooms",
+    "alias": "rooms",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Rooms\\App\\Providers\\RoomsServiceProvider"
+    ],
+    "files": []
+}

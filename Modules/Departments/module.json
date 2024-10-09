@@ -1,0 +1,11 @@
+{
+    "name": "Departments",
+    "alias": "departments",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Departments\\App\\Providers\\DepartmentsServiceProvider"
+    ],
+    "files": []
+}

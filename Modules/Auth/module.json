@@ -1,0 +1,19 @@
+{
+    "name": "Auth",
+    "alias": "auth",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    
+    "providers": [
+        "Modules\\Auth\\App\\Providers\\AuthServiceProvider"
+    ],
+    "migration": {
+        "seeds": [
+            "Modules\\Auth\\database\\seeds\\DatabaseSeeder"
+        ]
+    },
+    "files": []
+
+    
+}

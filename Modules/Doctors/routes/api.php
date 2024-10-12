@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Modules\Doctors\App\Http\Controllers\DoctorController;
+use Modules\Doctors\App\Http\Controllers\DoctorScheduleController;
 use Modules\Doctors\App\Http\Controllers\SpecializationController;
 
 /*
@@ -16,7 +17,14 @@ use Modules\Doctors\App\Http\Controllers\SpecializationController;
     |
 */
 
+Route::middleware('auth:sanctum')->group(function () {
+
+Route::get('/doctor-schedules', [DoctorScheduleController::class, 'index']);
+
+});
+
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+
     // Specializations Routes
     Route::get('/specializations', [SpecializationController::class, 'index']);
     Route::post('/specializations', [SpecializationController::class, 'store']);
@@ -28,4 +36,9 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::post('/doctors', [DoctorController::class, 'store']);
     Route::put('/doctors/{doctor}', [DoctorController::class, 'update']);
     Route::delete('/doctors/{doctor}', [DoctorController::class, 'destroy']);
+
+    // Doctor Schedules Routes
+    Route::post('/doctor-schedules', [DoctorScheduleController::class, 'store']);
+    Route::put('/doctor-schedules/{schedule}', [DoctorScheduleController::class, 'update']);
+    Route::delete('/doctor-schedules/{schedule}', [DoctorScheduleController::class, 'destroy']);
 });

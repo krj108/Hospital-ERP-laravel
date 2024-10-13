@@ -12,31 +12,37 @@ use App\Http\Controllers\Controller;
 class AuthController extends Controller
 {
        // User login
-    public function login(Request $request)
-    {
-        // Validate the input data
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        // Attempt to log in with the email and password
-        $user = User::where('email', $request->email)->first();
-
-        // Verify the user's existence and password
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid login credentials.'], 401);
-        }
-
-        // Create a token for the user
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        // Return the token with user data
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ]);
-    }
+       public function login(Request $request) 
+       { 
+           // Validate the input data
+           $request->validate([
+               'email' => 'required|email',
+               'password' => 'required',
+           ]);
+       
+           // Attempt to log in with the email and password
+           $user = User::where('email', $request->email)->first();
+       
+           // Verify the user's existence and password
+           if (!$user || !Hash::check($request->password, $user->password)) {
+               return response()->json(['message' => 'Invalid login credentials.'], 401);
+           }
+       
+           // Create a token for the user
+           $token = $user->createToken('auth_token')->plainTextToken;
+       
+           // Get the user's roles (since a user may have multiple roles, we fetch all)
+           $roles = $user->getRoleNames(); // This will return a collection of roles
+       
+           // Return the token with user data and roles
+           return response()->json([
+               'access_token' => $token,
+               'token_type' => 'Bearer',
+               'roles' => $roles,  // Return roles with the response
+               'name' => $user->name,  // Return the user's name
+           ]);
+       }
+       
 
     // User logout
     public function logout(Request $request)

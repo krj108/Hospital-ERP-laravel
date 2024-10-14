@@ -2,6 +2,6 @@
     "Auth": true,
     "Departments": true,
     "Rooms": true,
-    "Doctors": true
-
+    "Doctors": true,
+    "Service": true
 }

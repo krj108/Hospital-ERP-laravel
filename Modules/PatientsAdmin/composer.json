@@ -1,0 +1,31 @@
+{
+    "name": "nwidart/patientsadmin",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\PatientsAdmin\\": "",
+            "Modules\\PatientsAdmin\\App\\": "app/",
+            "Modules\\PatientsAdmin\\Database\\Factories\\": "database/factories/",
+            "Modules\\PatientsAdmin\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\PatientsAdmin\\Tests\\": "tests/"
+        }
+    }
+}

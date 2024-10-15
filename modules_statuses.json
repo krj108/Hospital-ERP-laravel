@@ -3,5 +3,6 @@
     "Departments": true,
     "Rooms": true,
     "Doctors": true,
-    "Service": true
+    "Service": true,
+    "PatientsAdmin": true
 }

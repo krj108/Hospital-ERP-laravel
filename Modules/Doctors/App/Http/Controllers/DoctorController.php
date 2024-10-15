@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use Modules\Doctors\App\Models\Doctor;
 use Modules\Doctors\App\Models\Specialization;
 use Modules\Departments\App\Models\Department;
+use Spatie\Permission\Models\Role; // Import Role from Spatie Permissions
 
 class DoctorController extends Controller
 {
@@ -27,17 +28,25 @@ class DoctorController extends Controller
             'specialization_id' => 'required|exists:specializations,id',
         ]);
 
+        // Create the user (doctor)
         $user = User::create([
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'name' => $request->name,
         ]);
 
+        // Create the doctor record and link it with the user
         $doctor = Doctor::create([
             'user_id' => $user->id,
             'department_id' => $request->department_id,
             'specialization_id' => $request->specialization_id,
         ]);
+
+        // Check if the "doctor" role exists, if not create it
+        $role = Role::firstOrCreate(['name' => 'doctor', 'guard_name' => 'web']);
+
+        // Assign the "doctor" role to the user using the "web" guard
+        $user->assignRole($role); // Here, we use the default "web" guard
 
         return response()->json($doctor, 201);
     }
@@ -52,8 +61,10 @@ class DoctorController extends Controller
             'specialization_id' => 'required|exists:specializations,id',
         ]);
 
+        // Update the user information
         $doctor->user->update($request->only('email', 'name', 'password'));
 
+        // Update the doctor information
         $doctor->update([
             'department_id' => $request->department_id,
             'specialization_id' => $request->specialization_id,
@@ -64,7 +75,8 @@ class DoctorController extends Controller
 
     public function destroy(Doctor $doctor)
     {
-        $doctor->user->delete(); // Deleting the user will cascade to delete the doctor
+        // Delete the user and doctor
+        $doctor->user->delete(); // The doctor will be automatically deleted due to the relationship
 
         return response()->json(null, 204);
     }

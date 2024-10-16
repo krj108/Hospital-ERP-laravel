@@ -26,13 +26,18 @@ class DoctorController extends Controller
             'name' => 'required|string|max:255',
             'department_id' => 'required|exists:departments,id',
             'specialization_id' => 'required|exists:specializations,id',
+            'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+
         ]);
+        $avatarPath = $request->hasFile('avatar') ? $request->file('avatar')->store('avatars', 'public') : null;
 
         // Create the user (doctor)
         $user = User::create([
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'name' => $request->name,
+            'avatar' => $avatarPath, 
+
         ]);
 
         // Create the doctor record and link it with the user
@@ -59,8 +64,14 @@ class DoctorController extends Controller
             'password' => 'sometimes|string|min:6',
             'department_id' => 'required|exists:departments,id',
             'specialization_id' => 'required|exists:specializations,id',
+            'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $doctor->user->update(['avatar' => $avatarPath]);
+        }
+        
         // Update the user information
         $doctor->user->update($request->only('email', 'name', 'password'));
 

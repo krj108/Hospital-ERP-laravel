@@ -68,6 +68,8 @@ class AuthController extends Controller
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|max:255|unique:users,email,' . $request->user()->id,
             'current_password' => 'required|string',  // Require current password for both name and email
+            'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048', // Validate avatar
+
         ]);
     
         if ($validator->fails()) {
@@ -89,6 +91,11 @@ class AuthController extends Controller
     
         if ($request->has('email')) {
             $user->email = $request->input('email');
+        }
+        if ($request->hasFile('avatar')) {
+            // Handle avatar upload
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = $avatarPath;
         }
     
         $user->save();

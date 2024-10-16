@@ -18,13 +18,17 @@ class PatientsAdminController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
             'name' => 'required|string|max:255',
+            'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048', 
         ]);
+        $avatarPath = $request->hasFile('avatar') ? $request->file('avatar')->store('avatars', 'public') : null;
+
 
         // Create a new user for the Patients Admin
         $user = User::create([
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'name' => $request->name,
+            'avatar' => $avatarPath,
         ]);
 
         // Ensure the "Patients Admin" role exists, otherwise create it

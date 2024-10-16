@@ -33,13 +33,17 @@ class PatientController extends Controller
             'national_id' => 'required|digits:11|unique:patients,national_id',
             'residence_address' => 'required|string|max:255',
             'mobile_number' => 'required|string|max:15',
+            'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048', 
+
         ]);
+        $avatarPath = $request->hasFile('avatar') ? $request->file('avatar')->store('avatars', 'public') : null;
 
         // Create user (patient)
         $user = User::create([
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'name' => $request->name,
+            'avatar' => $avatarPath, 
         ]);
 
         // Automatically assign "Patient" role
@@ -67,8 +71,13 @@ class PatientController extends Controller
             'residence_address' => 'sometimes|string|max:255',
             'mobile_number' => 'sometimes|string|max:15',
             'password' => 'sometimes|string|min:6',
+            'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-
+        
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $patient->user->update(['avatar' => $avatarPath]);
+        }
         // Update user data
         $patient->user->update($request->only('email', 'name', 'password'));
 

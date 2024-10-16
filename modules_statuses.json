@@ -4,5 +4,6 @@
     "Rooms": true,
     "Doctors": true,
     "Service": true,
-    "PatientsAdmin": true
+    "PatientsAdmin": true,
+    "Patients": true
 }

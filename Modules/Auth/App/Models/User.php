@@ -48,4 +48,9 @@ class User extends Authenticatable
     {
         return $this->avatar ? asset('storage/' . $this->avatar) : asset('images/default-avatar.png');
     }
+
+    protected static function newFactory()
+    {
+        return \Modules\Auth\Database\Factories\UserFactory::new();
+    }
 }

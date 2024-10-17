@@ -14,19 +14,19 @@ class AuthTest extends TestCase
     /** @test */
     public function user_can_login_with_valid_credentials()
     {
-        // إعداد مستخدم للاختبار
+        // Create a user for testing
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('password123'),
         ]);
 
-        // محاكاة طلب تسجيل الدخول
+        // Simulate a login request
         $response = $this->postJson('/api/login', [
             'email' => 'test@example.com',
             'password' => 'password123',
         ]);
 
-        // التحقق من نجاح تسجيل الدخول
+        // Assert that the login is successful with a 200 response
         $response->assertStatus(200);
         $response->assertJsonStructure([
             'access_token',
@@ -39,19 +39,19 @@ class AuthTest extends TestCase
     /** @test */
     public function user_cannot_login_with_invalid_credentials()
     {
-        // إعداد مستخدم للاختبار
+        // Create a user for testing
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('password123'),
         ]);
 
-        // محاكاة طلب تسجيل الدخول بكلمة مرور خاطئة
+        // Simulate a login request with an incorrect password
         $response = $this->postJson('/api/login', [
             'email' => 'test@example.com',
             'password' => 'wrongpassword',
         ]);
 
-        // التحقق من فشل تسجيل الدخول
+        // Assert that the login fails with a 401 status code
         $response->assertStatus(401);
         $response->assertJson([
             'message' => 'Invalid login credentials.',
@@ -61,16 +61,16 @@ class AuthTest extends TestCase
     /** @test */
     public function user_can_logout_successfully()
     {
-        // إعداد مستخدم للاختبار وتسجيل دخوله
+        // Create a user for testing and log them in
         $user = User::factory()->create();
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // محاكاة طلب تسجيل الخروج
+        // Simulate a logout request
         $response = $this->postJson('/api/logout', [], [
             'Authorization' => 'Bearer ' . $token,
         ]);
 
-        // التحقق من نجاح عملية تسجيل الخروج
+        // Assert that the logout was successful with a 200 status code
         $response->assertStatus(200);
         $response->assertJson([
             'message' => 'Logged out successfully',
@@ -80,14 +80,14 @@ class AuthTest extends TestCase
     /** @test */
     public function user_can_update_profile()
     {
-        // إعداد مستخدم للاختبار
+        // Create a user for testing
         $user = User::factory()->create([
             'password' => Hash::make('password123'),
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // محاكاة طلب تحديث الملف الشخصي
+        // Simulate a profile update request
         $response = $this->putJson('/api/me', [
             'name' => 'Updated Name',
             'email' => 'newemail@example.com',
@@ -96,7 +96,7 @@ class AuthTest extends TestCase
             'Authorization' => 'Bearer ' . $token,
         ]);
 
-        // التحقق من نجاح التحديث
+        // Assert that the profile update is successful
         $response->assertStatus(200);
         $response->assertJson([
             'name' => 'Updated Name',
@@ -107,14 +107,14 @@ class AuthTest extends TestCase
     /** @test */
     public function user_cannot_update_profile_with_invalid_password()
     {
-        // إعداد مستخدم للاختبار
+        // Create a user for testing
         $user = User::factory()->create([
             'password' => Hash::make('password123'),
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // محاكاة طلب تحديث الملف الشخصي بكلمة مرور غير صحيحة
+        // Simulate a profile update request with an invalid password
         $response = $this->putJson('/api/me', [
             'name' => 'Updated Name',
             'email' => 'newemail@example.com',
@@ -123,7 +123,7 @@ class AuthTest extends TestCase
             'Authorization' => 'Bearer ' . $token,
         ]);
 
-        // التحقق من فشل التحديث بسبب كلمة مرور غير صحيحة
+        // Assert that the profile update fails due to invalid password
         $response->assertStatus(403);
         $response->assertJson([
             'message' => 'Invalid password.',
@@ -133,14 +133,14 @@ class AuthTest extends TestCase
     /** @test */
     public function user_can_update_password()
     {
-        // إعداد مستخدم للاختبار
+        // Create a user for testing
         $user = User::factory()->create([
             'password' => Hash::make('oldpassword'),
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // محاكاة طلب تحديث كلمة المرور
+        // Simulate a password update request
         $response = $this->putJson('/api/me/password', [
             'current_password' => 'oldpassword',
             'password' => 'newpassword',
@@ -149,7 +149,7 @@ class AuthTest extends TestCase
             'Authorization' => 'Bearer ' . $token,
         ]);
 
-        // التحقق من نجاح التحديث
+        // Assert that the password update is successful
         $response->assertStatus(200);
         $response->assertJson([
             'message' => 'Password updated successfully.',
@@ -159,14 +159,14 @@ class AuthTest extends TestCase
     /** @test */
     public function user_cannot_update_password_with_invalid_current_password()
     {
-        // إعداد مستخدم للاختبار
+        // Create a user for testing
         $user = User::factory()->create([
             'password' => Hash::make('oldpassword'),
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // محاكاة طلب تحديث كلمة المرور بكلمة مرور حالية غير صحيحة
+        // Simulate a password update request with an invalid current password
         $response = $this->putJson('/api/me/password', [
             'current_password' => 'wrongpassword',
             'password' => 'newpassword',
@@ -175,11 +175,10 @@ class AuthTest extends TestCase
             'Authorization' => 'Bearer ' . $token,
         ]);
 
-        // التحقق من فشل التحديث بسبب كلمة مرور حالية غير صحيحة
+        // Assert that the password update fails due to invalid current password
         $response->assertStatus(403);
         $response->assertJson([
             'message' => 'Current password is incorrect.',
         ]);
     }
 }
-

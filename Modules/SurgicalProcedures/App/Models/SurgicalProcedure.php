@@ -17,9 +17,21 @@ class SurgicalProcedure extends Model
         'medical_staff',
     ];
 
-    protected $casts = [
-        'medical_staff' => 'array',
-    ];
+    // protected $casts = [
+    //     'medical_staff' => 'array',
+    // ];
+
+        // Automatically convert medical_staff to array when accessing it
+        public function getMedicalStaffAttribute($value)
+        {
+            return json_decode($value, true); // Convert text to array
+        }
+    
+        // Automatically convert medical_staff to json when saving it
+        public function setMedicalStaffAttribute($value)
+        {
+            $this->attributes['medical_staff'] = json_encode($value); // Convert array to text (json format)
+        }
 
     public function medicalCondition()
     {

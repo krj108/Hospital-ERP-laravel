@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('surgery_type'); // Type of surgery
             $table->foreignId('department_id')->constrained(); // Department of surgery
             $table->foreignId('room_id')->constrained(); // Room for surgery
-            $table->json('medical_staff'); // Medical staff involved (list of doctor IDs)
+            $table->text('medical_staff'); // Change from json to text
             $table->timestamps();
         });
     }

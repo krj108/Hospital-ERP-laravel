@@ -1,0 +1,11 @@
+{
+    "name": "MedicalConditions",
+    "alias": "medicalconditions",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\MedicalConditions\\App\\Providers\\MedicalConditionsServiceProvider"
+    ],
+    "files": []
+}

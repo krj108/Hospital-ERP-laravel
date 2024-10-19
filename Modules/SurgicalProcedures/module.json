@@ -1,0 +1,11 @@
+{
+    "name": "SurgicalProcedures",
+    "alias": "surgicalprocedures",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\SurgicalProcedures\\App\\Providers\\SurgicalProceduresServiceProvider"
+    ],
+    "files": []
+}

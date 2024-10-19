@@ -5,5 +5,7 @@
     "Doctors": true,
     "Service": true,
     "PatientsAdmin": true,
-    "Patients": true
+    "Patients": true,
+    "MedicalConditions": true,
+    "SurgicalProcedures": true
 }

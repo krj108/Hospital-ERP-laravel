@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Modules\Service\Http\Controllers\ServiceController;
+use Modules\Service\App\Http\Controllers\ServiceController;
 
 
 /*

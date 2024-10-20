@@ -3,6 +3,7 @@
 namespace Modules\MedicalConditions\App\Models;
 
 use Modules\Rooms\App\Models\Room;
+use Modules\Auth\App\Models\User;
 use Modules\Doctors\App\Models\Doctor;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Service\App\Models\Service;
@@ -21,6 +22,7 @@ class MedicalCondition extends Model
         'follow_up_date',
         'doctor_id',
         'surgery_required',
+       
     ];
 
    
@@ -49,4 +51,7 @@ class MedicalCondition extends Model
     {
         return $this->belongsToMany(Service::class, 'medical_condition_service');
     }
+
+
+
 }

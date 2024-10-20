@@ -6,28 +6,29 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Modules\MedicalConditions\App\Models\MedicalCondition;
 use Modules\SurgicalProcedures\App\Models\SurgicalProcedure;
-use Illuminate\Support\Facades\DB; // Import DB for transactions
+use Illuminate\Support\Facades\Auth; // Import Auth for user roles and permissions
+use Illuminate\Support\Facades\DB;
+use Modules\Doctors\App\Models\Doctor; // Import the Doctor model
 
 class MedicalConditionController extends Controller
 {
+    // Store a new medical condition
     public function store(Request $request)
     {
-        // Validate the input
         $request->validate([
             'patient_national_id' => 'required|exists:patients,national_id',
             'condition_description' => 'required|string',
             'department_id' => 'required|exists:departments,id',
             'room_id' => 'required|exists:rooms,id',
-            'services' => 'required|array', // Array of service IDs
-            'services.*' => 'exists:services,id', // Validate that services exist in the services table
+            'services' => 'required|array',
+            'services.*' => 'exists:services,id',
             'medications' => 'required|string',
             'follow_up' => 'boolean',
             'follow_up_date' => 'nullable|date',
-            'doctor_id' => 'required|exists:doctors,id',
+            'doctor_id' => 'required|exists:doctors,id', // Doctor ID who adds the condition
             'surgery_required' => 'boolean',
         ]);
 
-        // Using DB transaction to ensure data integrity
         DB::beginTransaction();
 
         try {
@@ -44,7 +45,7 @@ class MedicalConditionController extends Controller
                     'surgery_department_id' => 'required|exists:departments,id',
                     'surgery_room_id' => 'required|exists:rooms,id',
                     'medical_staff' => 'required|array', // Array of doctor IDs
-                    'medical_staff.*' => 'exists:doctors,id', // Validate each doctor ID exists
+                    'medical_staff.*' => 'exists:doctors,id',
                 ]);
 
                 SurgicalProcedure::create([
@@ -52,22 +53,91 @@ class MedicalConditionController extends Controller
                     'surgery_type' => $request->surgery_type,
                     'department_id' => $request->surgery_department_id,
                     'room_id' => $request->surgery_room_id,
-                    'medical_staff' => $request->medical_staff, // Store the array of doctor IDs
+                    'medical_staff' => $request->medical_staff,
                 ]);
             }
 
-            // If everything is successful, commit the transaction
             DB::commit();
 
             // Return the created medical condition with related services
             return response()->json($medicalCondition->load('services'), 201);
 
         } catch (\Exception $e) {
-            // If any error occurs, rollback the transaction
             DB::rollBack();
-
-            // Return error response
             return response()->json(['error' => 'Something went wrong: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // Fetch all medical conditions (Admin sees all, Doctors see their own)
+    public function index(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('admin')) {
+            // Admin can see all medical conditions
+            $medicalConditions = MedicalCondition::with('services')->get();
+        } else {
+            // Find the doctor's ID linked to the user
+            $doctor = Doctor::where('user_id', $user->id)->first();
+
+            if (!$doctor) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+
+            // Doctors can only see their own conditions
+            $medicalConditions = MedicalCondition::with('services')->where('doctor_id', $doctor->id)->get();
+        }
+
+        return response()->json($medicalConditions, 200);
+    }
+
+    // Update a medical condition
+    public function update(Request $request, MedicalCondition $medicalCondition)
+    {
+        $user = Auth::user();
+
+        // Find the doctor's ID linked to the user
+        $doctor = Doctor::where('user_id', $user->id)->first();
+
+        // Check if the user is admin or the doctor who added the condition
+        if ($user->hasRole('admin') || ($doctor && $doctor->id == $medicalCondition->doctor_id)) {
+            $request->validate([
+                'condition_description' => 'sometimes|string',
+                'department_id' => 'sometimes|exists:departments,id',
+                'room_id' => 'sometimes|exists:rooms,id',
+                'services' => 'sometimes|array',
+                'services.*' => 'exists:services,id',
+                'medications' => 'sometimes|string',
+                'follow_up' => 'boolean',
+                'follow_up_date' => 'nullable|date',
+            ]);
+
+            $medicalCondition->update($request->all());
+
+            if ($request->has('services')) {
+                $medicalCondition->services()->sync($request->services);
+            }
+
+            return response()->json($medicalCondition->load('services'), 200);
+        } else {
+            return response()->json(['error' => 'Unauthorized - You do not have permission to update this condition.'], 403);
+        }
+    }
+
+    // Delete a medical condition
+    public function destroy(MedicalCondition $medicalCondition)
+    {
+        $user = Auth::user();
+
+        // Find the doctor's ID linked to the user
+        $doctor = Doctor::where('user_id', $user->id)->first();
+
+        // Check if the user is admin or the doctor who added the condition
+        if ($user->hasRole('admin') || ($doctor && $doctor->id == $medicalCondition->doctor_id)) {
+            $medicalCondition->delete();
+            return response()->json(null, 204);
+        } else {
+            return response()->json(['error' => 'Unauthorized - You do not have permission to delete this condition.'], 403);
         }
     }
 }

@@ -20,3 +20,10 @@ Route::group(['middleware' => ['auth:sanctum'] , ['role:doctor']], function() {
     Route::post('/medical-conditions', [MedicalConditionController::class, 'store']);
  
 });
+
+Route::group(['middleware' => ['auth:sanctum'] , ['role:doctor|admin']], function() {
+    Route::get('/medical-conditions', [MedicalConditionController::class, 'index']);
+    Route::put('/medical-conditions/{medicalCondition}', [MedicalConditionController::class, 'update']);
+    Route::delete('/medical-conditions/{medicalCondition}', [MedicalConditionController::class, 'destroy']);
+
+});

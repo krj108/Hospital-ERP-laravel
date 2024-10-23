@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Modules\Patients\App\Http\Controllers\PatientController;
+use Modules\Patients\App\Http\Controllers\PatientMedicalController;
 
 /*
     |--------------------------------------------------------------------------
@@ -20,4 +21,9 @@ Route::group(['middleware' => ['auth:sanctum'] , ['role:admin|patients admin']],
     Route::post('/patients', [PatientController::class, 'store']);
     Route::put('/patients/{patient}', [PatientController::class, 'update']);
     Route::delete('/patients/{patient}', [PatientController::class, 'destroy']);
+});
+
+Route::middleware(['auth:sanctum', 'role:Patient'])->group(function () {
+    Route::get('/patient/medical-conditions', [PatientMedicalController::class, 'index']);
+    Route::get('/patient/medical-conditions/{id}', [PatientMedicalController::class, 'show']);
 });

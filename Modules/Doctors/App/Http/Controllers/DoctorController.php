@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 use Modules\Doctors\App\Models\Doctor;
 use Modules\Doctors\App\Models\Specialization;
 use Modules\Departments\App\Models\Department;
-use Spatie\Permission\Models\Role; // Import Role from Spatie Permissions
+use Spatie\Permission\Models\Role;
 
 class DoctorController extends Controller
 {
@@ -27,8 +27,8 @@ class DoctorController extends Controller
             'department_id' => 'required|exists:departments,id',
             'specialization_id' => 'required|exists:specializations,id',
             'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
-
         ]);
+
         $avatarPath = $request->hasFile('avatar') ? $request->file('avatar')->store('avatars', 'public') : null;
 
         // Create the user (doctor)
@@ -37,7 +37,6 @@ class DoctorController extends Controller
             'password' => Hash::make($request->password),
             'name' => $request->name,
             'avatar' => $avatarPath, 
-
         ]);
 
         // Create the doctor record and link it with the user
@@ -47,11 +46,9 @@ class DoctorController extends Controller
             'specialization_id' => $request->specialization_id,
         ]);
 
-        // Check if the "doctor" role exists, if not create it
+        // Assign the "doctor" role to the user
         $role = Role::firstOrCreate(['name' => 'doctor', 'guard_name' => 'web']);
-
-        // Assign the "doctor" role to the user using the "web" guard
-        $user->assignRole($role); // Here, we use the default "web" guard
+        $user->assignRole($role);
 
         return response()->json($doctor, 201);
     }
@@ -67,13 +64,21 @@ class DoctorController extends Controller
             'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
+        // Handle avatar update
         if ($request->hasFile('avatar')) {
             $avatarPath = $request->file('avatar')->store('avatars', 'public');
             $doctor->user->update(['avatar' => $avatarPath]);
         }
-        
-        // Update the user information
-        $doctor->user->update($request->only('email', 'name', 'password'));
+
+        // Handle password update
+        if ($request->filled('password')) {
+            $doctor->user->update([
+                'password' => Hash::make($request->password),
+            ]);
+        }
+
+        // Update the user information except password (already handled)
+        $doctor->user->update($request->only('email', 'name'));
 
         // Update the doctor information
         $doctor->update([
@@ -87,7 +92,7 @@ class DoctorController extends Controller
     public function destroy(Doctor $doctor)
     {
         // Delete the user and doctor
-        $doctor->user->delete(); // The doctor will be automatically deleted due to the relationship
+        $doctor->user->delete();
 
         return response()->json(null, 204);
     }

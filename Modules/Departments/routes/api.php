@@ -19,10 +19,13 @@ use Modules\Departments\App\Http\Controllers\DepartmentController;
 
 
 
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
-    Route::get('/departments', [DepartmentController::class, 'index']);
-    Route::post('/departments', [DepartmentController::class, 'store']);
-    Route::put('/departments/{department}', [DepartmentController::class, 'update']);
-    Route::delete('/departments/{department}', [DepartmentController::class, 'destroy']);
-});
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/departments', [DepartmentController::class, 'index']); // Accessible by both admin and doctor
 
+    // Only admin can store, update, and destroy
+    Route::middleware(['role:admin'])->group(function () {
+        Route::post('/departments', [DepartmentController::class, 'store']);
+        Route::put('/departments/{department}', [DepartmentController::class, 'update']);
+        Route::delete('/departments/{department}', [DepartmentController::class, 'destroy']);
+    });
+});

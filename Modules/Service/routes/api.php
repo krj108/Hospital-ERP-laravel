@@ -16,14 +16,16 @@ use Modules\Service\App\Http\Controllers\ServiceController;
     |
 */
 
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Routes accessible by both admin and doctor
+    Route::get('/services', [ServiceController::class, 'index'])->middleware('role:admin|doctor');
+    Route::get('/services/{id}', [ServiceController::class, 'show'])->middleware('role:admin|doctor');
 
-    Route::prefix('services')->group(function () {
-        Route::get('/', [ServiceController::class, 'index']);
-        Route::get('/{id}', [ServiceController::class, 'show']);
-        Route::post('/', [ServiceController::class, 'store']);
-        Route::put('/{service}', [ServiceController::class, 'update']);
-        Route::delete('/{service}', [ServiceController::class, 'destroy']);
+    // Routes accessible only by admin
+    Route::middleware('role:admin')->group(function () {
+        Route::post('/services', [ServiceController::class, 'store']);
+        Route::put('/services/{service}', [ServiceController::class, 'update']);
+        Route::delete('/services/{service}', [ServiceController::class, 'destroy']);
     });
 });
 

@@ -5,6 +5,7 @@ namespace Modules\Rooms\App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Rooms\App\Models\Room;
+use Illuminate\Support\Facades\Auth;
 
 class RoomController extends Controller
 {
@@ -14,47 +15,53 @@ class RoomController extends Controller
         return Room::with('department')->get();
     }
 
-    // Store a newly created room in the database
+    // Store a newly created room in the database (Admin Only)
     public function store(Request $request)
     {
-        // Validate the incoming request data
+        if (!Auth::user()->hasRole('admin')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Validate and create the new room
         $request->validate([
-            'number' => 'required|string|max:255', // Room number is required
-            'status' => 'required|in:vacant,occupied,maintenance', // Status must be one of the three options
-            'department_id' => 'required|exists:departments,id', // Department must exist in the departments table
+            'number' => 'required|string|max:255',
+            'status' => 'required|in:vacant,occupied,maintenance',
+            'department_id' => 'required|exists:departments,id',
         ]);
 
-        // Create the new room with the validated data
         $room = Room::create($request->only('number', 'status', 'department_id'));
 
-        // Return the newly created room data with a 201 status code
         return response()->json($room, 201);
     }
 
-    // Update the specified room in the database
+    // Update the specified room in the database (Admin and Doctor)
     public function update(Request $request, Room $room)
     {
-        // Validate the incoming request data
+        if (!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('doctor')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Validate and update the room
         $request->validate([
-            'number' => 'required|string|max:255', // Room number is required
-            'status' => 'required|in:vacant,occupied,maintenance', // Status must be one of the three options
-            'department_id' => 'required|exists:departments,id', // Department must exist in the departments table
+            'number' => 'required|string|max:255',
+            'status' => 'required|in:vacant,occupied,maintenance',
+            'department_id' => 'required|exists:departments,id',
         ]);
 
-        // Update the room with the validated data
         $room->update($request->only('number', 'status', 'department_id'));
 
-        // Return the updated room data
         return response()->json($room);
     }
 
-    // Remove the specified room from the database
+    // Remove the specified room from the database (Admin Only)
     public function destroy(Room $room)
     {
-        // Delete the room
+        if (!Auth::user()->hasRole('admin')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         $room->delete();
 
-        // Return a 204 status code indicating successful deletion with no content
         return response()->json(null, 204);
     }
 }

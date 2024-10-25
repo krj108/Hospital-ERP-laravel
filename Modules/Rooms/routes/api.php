@@ -14,9 +14,13 @@ use Modules\Rooms\App\Http\Controllers\RoomController;
     |
 */
 
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
-    Route::get('/rooms', [RoomController::class, 'index']);
-    Route::post('/rooms', [RoomController::class, 'store']);
-    Route::put('/rooms/{room}', [RoomController::class, 'update']);
-    Route::delete('/rooms/{room}', [RoomController::class, 'destroy']);
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/rooms', [RoomController::class, 'index']); // Accessible by both admin and doctor
+    Route::put('/rooms/{room}', [RoomController::class, 'update']); // Accessible by both admin and doctor
+
+    // Only admin can store and destroy
+    Route::middleware(['role:admin'])->group(function () {
+        Route::post('/rooms', [RoomController::class, 'store']);
+        Route::delete('/rooms/{room}', [RoomController::class, 'destroy']);
+    });
 });

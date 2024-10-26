@@ -4,7 +4,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Modules\Auth\App\Http\Controllers\AuthController;
 
-// تسجيل الدخول
 Route::post('/login', [AuthController::class, 'login']);
 
 

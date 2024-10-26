@@ -15,11 +15,13 @@ class SurgicalProcedure extends Model
         'department_id',
         'room_id',
         'medical_staff',
+         'surgery_date', // Include surgery date
     ];
 
-    // protected $casts = [
-    //     'medical_staff' => 'array',
-    // ];
+    protected $casts = [
+        'surgery_date' => 'datetime', // Ensure surgery date is cast to datetime
+
+    ];
 
         // Automatically convert medical_staff to array when accessing it
         public function getMedicalStaffAttribute($value)

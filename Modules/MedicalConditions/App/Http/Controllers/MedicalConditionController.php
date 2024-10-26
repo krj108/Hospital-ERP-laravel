@@ -27,6 +27,8 @@ class MedicalConditionController extends Controller
             'follow_up_date' => 'nullable|date',
             'doctor_id' => 'required|exists:doctors,id', // Doctor ID who adds the condition
             'surgery_required' => 'boolean',
+          
+
         ]);
 
         DB::beginTransaction();
@@ -46,6 +48,7 @@ class MedicalConditionController extends Controller
                     'surgery_room_id' => 'required|exists:rooms,id',
                     'medical_staff' => 'required|array', // Array of doctor IDs
                     'medical_staff.*' => 'exists:doctors,id',
+                    'surgery_date' => 'required_if:surgery_required,true|date', // Ensure surgery_date is provided if surgery is required
                 ]);
 
                 SurgicalProcedure::create([
@@ -54,6 +57,7 @@ class MedicalConditionController extends Controller
                     'department_id' => $request->surgery_department_id,
                     'room_id' => $request->surgery_room_id,
                     'medical_staff' => $request->medical_staff,
+                    'surgery_date' => $request->surgery_date,
                 ]);
             }
 

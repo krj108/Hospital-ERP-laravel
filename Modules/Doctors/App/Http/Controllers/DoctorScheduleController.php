@@ -5,16 +5,16 @@ namespace Modules\Doctors\App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Doctors\App\Models\DoctorSchedule;
+use Modules\Doctors\App\resources\DoctorScheduleResource;
 
 class DoctorScheduleController extends Controller
 {
-
     public function index()
     {
-        return DoctorSchedule::with('doctor')->get();
+        $schedules = DoctorSchedule::with('doctor')->get();
+        return response()->json(DoctorScheduleResource::collection($schedules), 200); // إرجاع 200 OK
     }
 
-  
     public function store(Request $request)
     {
         $request->validate([
@@ -27,10 +27,11 @@ class DoctorScheduleController extends Controller
 
         $schedule = DoctorSchedule::create($request->only('doctor_id', 'start_date', 'end_date', 'start_time', 'end_time'));
 
-        return response()->json($schedule, 201);
+        $schedule->load('doctor');
+
+        return response()->json(new DoctorScheduleResource($schedule), 201); 
     }
 
-   
     public function update(Request $request, DoctorSchedule $schedule)
     {
         $request->validate([
@@ -42,15 +43,15 @@ class DoctorScheduleController extends Controller
 
         $schedule->update($request->only('start_date', 'end_date', 'start_time', 'end_time'));
 
-        return response()->json($schedule);
+        $schedule->load('doctor');
+
+        return response()->json(new DoctorScheduleResource($schedule), 200); 
     }
 
-    
     public function destroy(DoctorSchedule $schedule)
     {
         $schedule->delete();
 
-        return response()->json(null, 204);
+        return response()->json(null, 204); 
     }
 }
-

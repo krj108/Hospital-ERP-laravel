@@ -89,7 +89,7 @@ class MedicalConditionController extends Controller
             }
 
             // Doctors can only see their own conditions
-            $medicalConditions = MedicalCondition::with('services')->where('doctor_id', $doctor->id)->get();
+            $medicalConditions = MedicalCondition::with('services', 'surgery')->where('doctor_id', $doctor->id)->get();
         }
 
         return response()->json($medicalConditions, 200);

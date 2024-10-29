@@ -79,7 +79,7 @@ class MedicalConditionController extends Controller
 
         if ($user->hasRole('admin')) {
             // Admin can see all medical conditions
-            $medicalConditions = MedicalCondition::with('services')->get();
+            $medicalConditions = MedicalCondition::with('services', 'surgery')->get();
         } else {
             // Find the doctor's ID linked to the user
             $doctor = Doctor::where('user_id', $user->id)->first();

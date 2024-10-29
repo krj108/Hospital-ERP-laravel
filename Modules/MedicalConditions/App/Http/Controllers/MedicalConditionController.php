@@ -122,7 +122,11 @@ class MedicalConditionController extends Controller
                 $medicalCondition->services()->sync($request->services);
             }
 
-            return response()->json($medicalCondition->load('services'), 200);
+            if ($request->has('surgery')) {
+                $medicalCondition->surgery()->sync($request->surgery);
+            }
+
+            return response()->json($medicalCondition->load('services' , 'surgery'), 200);
         } else {
             return response()->json(['error' => 'Unauthorized - You do not have permission to update this condition.'], 403);
         }

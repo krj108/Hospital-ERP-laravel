@@ -9,6 +9,8 @@ use Modules\SurgicalProcedures\App\Models\SurgicalProcedure;
 use Illuminate\Support\Facades\Auth; // Import Auth for user roles and permissions
 use Illuminate\Support\Facades\DB;
 use Modules\Doctors\App\Models\Doctor; // Import the Doctor model
+use Carbon\Carbon;
+
 
 class MedicalConditionController extends Controller
 {
@@ -34,8 +36,11 @@ class MedicalConditionController extends Controller
         DB::beginTransaction();
 
         try {
-            // Create the medical condition
-            $medicalCondition = MedicalCondition::create($request->except('services'));
+        if ($request->has('follow_up_date')) {
+            $data['follow_up_date'] = Carbon::parse($request->follow_up_date)->format('Y-m-d H:i:s');
+        }
+
+        $medicalCondition = MedicalCondition::create($data);
 
             // Attach the services to the medical condition
             $medicalCondition->services()->sync($request->services);
@@ -111,7 +116,13 @@ class MedicalConditionController extends Controller
         try {
             $medicalCondition = MedicalCondition::findOrFail($id);
     
-            $medicalCondition->update($request->except('services'));
+            // $medicalCondition->update($request->except('services'));
+        if ($request->has('follow_up_date')) {
+            $data['follow_up_date'] = Carbon::parse($request->follow_up_date)->format('Y-m-d H:i:s');
+        }
+
+             $medicalCondition->update($data);
+
     
             $medicalCondition->services()->sync($request->services);
     

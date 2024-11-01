@@ -1,11 +1,11 @@
 <?php
 namespace Modules\SurgicalProcedures\App\Models;
 
-use Modules\Rooms\App\Models\Room;
-use Modules\Doctors\App\Models\Doctor;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Departments\App\Models\Department;
+use Modules\Doctors\App\Models\Doctor;
 use Modules\MedicalConditions\App\Models\MedicalCondition;
+use Modules\Rooms\App\Models\Room;
 
 class SurgicalProcedure extends Model
 {
@@ -15,25 +15,13 @@ class SurgicalProcedure extends Model
         'department_id',
         'room_id',
         'medical_staff',
-         'surgery_date', // Include surgery date
+        'surgery_date',
     ];
 
     protected $casts = [
-        'surgery_date' => 'datetime', // Ensure surgery date is cast to datetime
-
+        'surgery_date' => 'datetime',
+        'medical_staff' => 'array', // Casting to array to handle JSON format automatically
     ];
-
-        // Automatically convert medical_staff to array when accessing it
-        public function getMedicalStaffAttribute($value)
-        {
-            return json_decode($value, true); // Convert text to array
-        }
-    
-        // Automatically convert medical_staff to json when saving it
-        public function setMedicalStaffAttribute($value)
-        {
-            $this->attributes['medical_staff'] = json_encode($value); // Convert array to text (json format)
-        }
 
     public function medicalCondition()
     {
@@ -49,6 +37,7 @@ class SurgicalProcedure extends Model
     {
         return $this->belongsTo(Room::class);
     }
+
     public function doctors()
     {
         return $this->belongsToMany(Doctor::class, 'doctor_surgical_procedure', 'surgical_procedure_id', 'doctor_id');

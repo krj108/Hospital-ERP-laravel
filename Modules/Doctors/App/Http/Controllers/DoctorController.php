@@ -8,9 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use Modules\Doctors\App\Models\Doctor;
-use Modules\Doctors\App\Models\Specialization;
-use Modules\Departments\App\Models\Department;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\DB;
 
 class DoctorController extends Controller
 {
@@ -21,100 +20,89 @@ class DoctorController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
             'name' => 'required|string|max:255',
             'department_id' => 'required|exists:departments,id',
             'specialization_id' => 'required|exists:specializations,id',
-            'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
-            
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $avatarPath = $request->hasFile('avatar') ? $request->file('avatar')->store('avatars', 'public') : null;
+        DB::transaction(function () use ($validatedData, &$doctor) {
+            // Handle optional avatar upload
+            $avatarPath = isset($validatedData['avatar']) ? $validatedData['avatar']->store('avatars', 'public') : null;
 
-        // Create the user (doctor)
-        $user = User::create([
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'name' => $request->name,
-            'avatar' => $avatarPath, 
-        ]);
+            // Create the user and assign doctor role
+            $user = User::create([
+                'email' => $validatedData['email'],
+                'password' => Hash::make($validatedData['password']),
+                'name' => $validatedData['name'],
+                'avatar' => $avatarPath,
+            ]);
+            $user->assignRole(Role::firstOrCreate(['name' => 'doctor', 'guard_name' => 'web']));
 
-        // Create the doctor record and link it with the user
-        $doctor = Doctor::create([
-            'user_id' => $user->id,
-            'department_id' => $request->department_id,
-            'specialization_id' => $request->specialization_id,
-        ]);
+            // Create doctor record and link it with user
+            $doctor = Doctor::create([
+                'user_id' => $user->id,
+                'department_id' => $validatedData['department_id'],
+                'specialization_id' => $validatedData['specialization_id'],
+            ]);
+        });
 
-        // Assign the "doctor" role to the user
-        $role = Role::firstOrCreate(['name' => 'doctor', 'guard_name' => 'web']);
-        $user->assignRole($role);
-
-        return response()->json($doctor, 201);
+        return response()->json($doctor->load('user'), 201);
     }
 
     public function update(Request $request, Doctor $doctor)
     {
-        // Validate the request fields
         $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $doctor->user_id,
-            'password' => 'sometimes|string|min:6',
-            'department_id' => 'required|exists:departments,id',
-            'specialization_id' => 'required|exists:specializations,id',
-            'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'admin_password' => 'required|string', // Admin password is required for security
-
+            'admin_password' => 'required|string',
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:users,email,' . $doctor->user_id,
+            'password' => 'nullable|string|min:6',
+            'department_id' => 'nullable|exists:departments,id',
+            'specialization_id' => 'nullable|exists:specializations,id',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-        
-        // Get the current authenticated admin
-        $admin = $request->user();
 
-        // Check if the admin's password is correct
-        if (!Hash::check($request->input('admin_password'), $admin->password)) {
-            return response()->json(['error' => 'Invalid admin password.'], 403); // Return unauthorized if password is incorrect
+        $admin = $request->user();
+        if (!Hash::check($request->admin_password, $admin->password)) {
+            return response()->json(['error' => 'Invalid admin password.'], 403);
         }
 
-        // Strict handling for avatar update
-        if ($request->hasFile('avatar')) {
-            // Strict handling of old avatar deletion
-            if ($doctor->user->avatar && Storage::disk('public')->exists($doctor->user->avatar)) {
-                Storage::disk('public')->delete($doctor->user->avatar);
+        DB::transaction(function () use ($request, $doctor) {
+            $userUpdates = array_filter($request->only(['name', 'email']));
+            if ($request->filled('password')) {
+                $userUpdates['password'] = Hash::make($request->password);
             }
 
-            // Upload new avatar and update user avatar path
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
-            $doctor->user->avatar = $avatarPath;
-            $doctor->user->save(); // Make sure to save the user
-        }
+            // Handle avatar update if provided
+            if ($request->hasFile('avatar')) {
+                if ($doctor->user->avatar && Storage::disk('public')->exists($doctor->user->avatar)) {
+                    Storage::disk('public')->delete($doctor->user->avatar);
+                }
+                $userUpdates['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            }
 
-        // Handle password update only if filled
-        if ($request->filled('password')) {
-            $doctor->user->password = Hash::make($request->password);
-            $doctor->user->save(); // Save the user after updating the password
-        }
+            if (!empty($userUpdates)) {
+                $doctor->user->update($userUpdates);
+            }
 
-        // Update user information (except password)
-        $doctor->user->update($request->only('email', 'name'));
-
-        // Update doctor information
-        $doctor->update([
-            'department_id' => $request->department_id,
-            'specialization_id' => $request->specialization_id,
-        ]);
+            // Update doctor fields if provided
+            $doctorUpdates = array_filter($request->only(['department_id', 'specialization_id']));
+            if (!empty($doctorUpdates)) {
+                $doctor->update($doctorUpdates);
+            }
+        });
 
         return response()->json($doctor->load('user'), 200);
     }
 
     public function destroy(Doctor $doctor)
     {
-        // Delete the user and doctor
         if ($doctor->user->avatar && Storage::disk('public')->exists($doctor->user->avatar)) {
             Storage::disk('public')->delete($doctor->user->avatar);
         }
-        
         $doctor->user->delete();
 
         return response()->json(null, 204);

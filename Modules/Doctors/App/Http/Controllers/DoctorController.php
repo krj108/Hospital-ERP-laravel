@@ -50,7 +50,7 @@ class DoctorController extends Controller
             ]);
         });
 
-        return response()->json($doctor->load('user'), 201);
+        return response()->json($doctor->load('user' , 'department', 'specialization'), 201);
     }
 
     public function update(Request $request, Doctor $doctor)
@@ -90,7 +90,7 @@ class DoctorController extends Controller
             }
         });
 
-        return response()->json($doctor->load('user'), 200);
+        return response()->json($doctor->load('user' , 'department', 'specialization'), 200);
     }
 
     public function destroy(Doctor $doctor)

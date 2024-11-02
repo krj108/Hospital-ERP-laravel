@@ -29,7 +29,7 @@ class MedicalConditionController extends Controller
             'surgery_type' => 'required_if:surgery_required,true|string',
             'surgery_department_id' => 'required_if:surgery_required,true|exists:departments,id',
             'surgery_room_id' => 'required_if:surgery_required,true|exists:rooms,id',
-            'medical_staff' => 'required_if:surgery_required,true|array',
+            'medical_staff' => 'required|array', 
             'medical_staff.*' => 'exists:doctors,id',
         ]);
 
@@ -49,17 +49,15 @@ class MedicalConditionController extends Controller
                 'surgery_required' => $validatedData['surgery_required'],
             ]);
 
-            // ربط الخدمات بالحالة المرضية
             $medicalCondition->services()->sync($validatedData['services']);
 
-            // إضافة تفاصيل العملية الجراحية إن كانت مطلوبة
             if ($validatedData['surgery_required']) {
                 SurgicalProcedure::create([
                     'medical_condition_id' => $medicalCondition->id,
                     'surgery_type' => $validatedData['surgery_type'],
                     'department_id' => $validatedData['surgery_department_id'],
                     'room_id' => $validatedData['surgery_room_id'],
-                    'medical_staff' => json_encode($validatedData['medical_staff']),
+                    'medical_staff' => $validatedData['medical_staff'],
                     'surgery_date' => $validatedData['surgery_date'],
                 ]);
             }
@@ -107,7 +105,7 @@ class MedicalConditionController extends Controller
         'surgery_type' => 'required_if:surgery_required,true|string',
         'surgery_department_id' => 'required_if:surgery_required,true|exists:departments,id',
         'surgery_room_id' => 'required_if:surgery_required,true|exists:rooms,id',
-        'medical_staff' => 'required_if:surgery_required,true|array',
+        'medical_staff' => 'required|array', // Array of doctor IDs
         'medical_staff.*' => 'exists:doctors,id',
     ]);
 
@@ -139,7 +137,7 @@ class MedicalConditionController extends Controller
                     'surgery_type' => $validatedData['surgery_type'],
                     'department_id' => $validatedData['surgery_department_id'],
                     'room_id' => $validatedData['surgery_room_id'],
-                    'medical_staff' => json_encode($validatedData['medical_staff']),
+                    'medical_staff' => $validatedData['medical_staff'],
                     'surgery_date' => $validatedData['surgery_date'],
                 ]
             );

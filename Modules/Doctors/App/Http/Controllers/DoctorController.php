@@ -81,14 +81,17 @@ class DoctorController extends Controller
 
             if (!empty($userUpdates)) {
                 $doctor->user->update($userUpdates);
+
             }
 
             // Update doctor fields if provided
             $doctorUpdates = array_filter($request->only(['department_id', 'specialization_id']));
             if (!empty($doctorUpdates)) {
                 $doctor->update($doctorUpdates);
+
             }
         });
+        $doctor->refresh();
 
         return response()->json($doctor->load('user' , 'department', 'specialization'), 200);
     }

@@ -24,7 +24,7 @@ Route::group(['middleware' => ['auth:sanctum', 'role:admin|patients admin|doctor
 Route::group(['middleware' => ['auth:sanctum'] , ['role:admin|patients admin']], function() {
     // Route::get('/patients', [PatientController::class, 'index']);
     Route::post('/patients', [PatientController::class, 'store']);
-    Route::put('/patients/{patient}', [PatientController::class, 'update']);
+    Route::post('/patients/{patient}', [PatientController::class, 'update']);
     Route::delete('/patients/{patient}', [PatientController::class, 'destroy']);
 });
 

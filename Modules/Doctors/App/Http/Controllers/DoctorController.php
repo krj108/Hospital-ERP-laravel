@@ -56,7 +56,6 @@ class DoctorController extends Controller
     public function update(Request $request, Doctor $doctor)
     {
         $request->validate([
-            'admin_password' => 'required|string',
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $doctor->user_id,
             'password' => 'nullable|string|min:6',
@@ -65,10 +64,6 @@ class DoctorController extends Controller
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $admin = $request->user();
-        if (!Hash::check($request->admin_password, $admin->password)) {
-            return response()->json(['error' => 'Invalid admin password.'], 403);
-        }
 
         DB::transaction(function () use ($request, $doctor) {
             $userUpdates = array_filter($request->only(['name', 'email']));

@@ -101,12 +101,13 @@ class MedicalConditionController extends Controller
         'follow_up_date' => 'nullable|date',
         'doctor_id' => 'required|exists:doctors,id',
         'surgery_required' => 'boolean',
-        'surgery_date' => 'required_if:surgery_required,true|date',
-        'surgery_type' => 'required_if:surgery_required,true|string',
-        'surgery_department_id' => 'required_if:surgery_required,true|exists:departments,id',
-        'surgery_room_id' => 'required_if:surgery_required,true|exists:rooms,id',
-        'medical_staff' => 'required|array', // Array of doctor IDs
+        'surgery_date' => 'nullable|date',
+        'surgery_type' => 'nullable|string',
+        'surgery_department_id' => 'nullable|exists:departments,id',
+        'surgery_room_id' => 'nullable|exists:rooms,id',
+        'medical_staff' => 'nullable|array', // Array of doctor IDs
         'medical_staff.*' => 'exists:doctors,id',
+
     ]);
 
     DB::beginTransaction();

@@ -92,7 +92,7 @@ class MedicalConditionController extends Controller
             $medicalConditions = MedicalCondition::with('services', 'surgery')
                 ->where('doctor_id', $doctorId)
                 ->orWhereHas('surgery', function ($query) use ($doctorId) {
-                    $query->whereJsonContains('medical_staff', $doctorId);
+                    $query->where('medical_staff', 'LIKE', '%"'.$doctorId.'"%');
                 })
                 ->get();
         } else {

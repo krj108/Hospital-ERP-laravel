@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Modules\MedicalConditions\App\Models\MedicalCondition;
 use Modules\SurgicalProcedures\App\Models\SurgicalProcedure;
+use Modules\Doctors\App\Models\Doctor;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -37,7 +38,7 @@ class MedicalConditionController extends Controller
         DB::beginTransaction();
         
         try {
-            // إنشاء الحالة المرضية
+    
             $medicalCondition = MedicalCondition::create([
                 'patient_national_id' => $validatedData['patient_national_id'],
                 'condition_description' => $validatedData['condition_description'],
@@ -75,17 +76,29 @@ class MedicalConditionController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+
         if ($user->hasRole('admin')) {
+            // Admin can view all medical conditions with related services and surgeries
             $medicalConditions = MedicalCondition::with('services', 'surgery')->get();
-        } else {
-            $doctor = $user->doctor;
-            if (!$doctor) {
+        } elseif ($user->hasRole('doctor')) {
+            // Retrieve doctor id based on user id
+            $doctorId = Doctor::where('user_id', $user->id)->value('id');
+
+            if (!$doctorId) {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
+
+            // Get medical conditions assigned to this doctor or involving the doctor in the surgery team
             $medicalConditions = MedicalCondition::with('services', 'surgery')
-                ->where('doctor_id', $doctor->id)
+                ->where('doctor_id', $doctorId)
+                ->orWhereHas('surgery', function ($query) use ($doctorId) {
+                    $query->whereJsonContains('medical_staff', $doctorId);
+                })
                 ->get();
+        } else {
+            return response()->json(['error' => 'Unauthorized'], 403);
         }
+
         return response()->json($medicalConditions, 200);
     }
 
@@ -127,12 +140,12 @@ class MedicalConditionController extends Controller
             'surgery_required' => $validatedData['surgery_required'],
         ]);
 
-        // تحديث أو إضافة الخدمات
+
         $medicalCondition->services()->sync($validatedData['services'] ?? []);
 
-        // إذا كانت العملية مطلوبة
+ 
         if ($validatedData['surgery_required']) {
-            // التحقق من إنشاء أو تحديث العملية الجراحية
+       
             SurgicalProcedure::updateOrCreate(
                 ['medical_condition_id' => $medicalCondition->id],
                 [
@@ -144,7 +157,7 @@ class MedicalConditionController extends Controller
                 ]
             );
         } else {
-            // إذا لم تعد العملية مطلوبة، احذف السجل إذا كان موجودًا
+     
             $medicalCondition->surgery()->delete();
         }
 

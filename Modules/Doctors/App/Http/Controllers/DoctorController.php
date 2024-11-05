@@ -102,7 +102,7 @@ class DoctorController extends Controller
             Storage::disk('public')->delete($doctor->user->avatar);
         }
         $doctor->user->delete();
-
+        $doctor->delete();
         return response()->json(null, 204);
     }
 }

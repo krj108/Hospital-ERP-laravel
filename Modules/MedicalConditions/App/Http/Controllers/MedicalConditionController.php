@@ -14,7 +14,10 @@ class MedicalConditionController extends Controller
 {
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
+        $user = Auth::user();
+    
+ 
+        $validationRules = [
             'patient_national_id' => 'required|exists:patients,national_id',
             'condition_description' => 'required|string',
             'department_id' => 'required|exists:departments,id',
@@ -24,21 +27,35 @@ class MedicalConditionController extends Controller
             'medications' => 'required|string',
             'follow_up' => 'boolean',
             'follow_up_date' => 'nullable|date',
-            'doctor_id' => 'required|exists:doctors,id',
             'surgery_required' => 'boolean',
             'surgery_date' => 'nullable|date',
             'surgery_type' => 'nullable|string',
             'surgery_department_id' => 'nullable|exists:departments,id',
             'surgery_room_id' => 'nullable|exists:rooms,id',
-            'medical_staff' => 'nullable|array', // Array of doctor IDs
+            'medical_staff' => 'nullable|array', 
             'medical_staff.*' => 'exists:doctors,id',
-
-        ]);
-
+        ];
+    
+     
+        if ($user->hasRole('admin')) {
+            $validationRules['doctor_id'] = 'required|exists:doctors,id';
+        }
+    
+        $validatedData = $request->validate($validationRules);
+    
+  
+        if ($user->hasRole('doctor')) {
+            if ($user->id) {
+                $validatedData['doctor_id'] = $user->id;
+            } else {
+                return response()->json(['error' => 'Doctor profile not found for this user.'], 403);
+            }
+        }
+    
         DB::beginTransaction();
         
         try {
-    
+            
             $medicalCondition = MedicalCondition::create([
                 'patient_national_id' => $validatedData['patient_national_id'],
                 'condition_description' => $validatedData['condition_description'],
@@ -50,28 +67,32 @@ class MedicalConditionController extends Controller
                 'doctor_id' => $validatedData['doctor_id'],
                 'surgery_required' => $validatedData['surgery_required'],
             ]);
-
+    
+        
             $medicalCondition->services()->sync($validatedData['services']);
-
+    
+     
             if ($validatedData['surgery_required']) {
                 SurgicalProcedure::create([
                     'medical_condition_id' => $medicalCondition->id,
                     'surgery_type' => $validatedData['surgery_type'],
                     'department_id' => $validatedData['surgery_department_id'],
                     'room_id' => $validatedData['surgery_room_id'],
-                    'medical_staff' => $validatedData['medical_staff'],
+                    'medical_staff' => json_encode($validatedData['medical_staff']),
                     'surgery_date' => $validatedData['surgery_date'],
                 ]);
             }
-
+    
             DB::commit();
             return response()->json($medicalCondition->load('services', 'surgery'), 201);
-
+    
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => 'Something went wrong: ' . $e->getMessage()], 500);
         }
     }
+    
+    
 
     public function index(Request $request)
     {

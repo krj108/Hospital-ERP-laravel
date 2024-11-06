@@ -1,11 +1,11 @@
 <?php
 namespace Modules\SurgicalProcedures\App\Models;
 
+use Modules\Rooms\App\Models\Room;
+use Modules\Doctors\App\Models\Doctor;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Departments\App\Models\Department;
-use Modules\Doctors\App\Models\Doctor;
 use Modules\MedicalConditions\App\Models\MedicalCondition;
-use Modules\Rooms\App\Models\Room;
 
 class SurgicalProcedure extends Model
 {
@@ -19,8 +19,8 @@ class SurgicalProcedure extends Model
     ];
 
     protected $casts = [
-        'surgery_date' => 'datetime',
-        'medical_staff' => 'array', // Casting to array to handle JSON format automatically
+        'medical_staff' => 'array', // This will ensure it's treated as an array
+        'surgery_date' => 'datetime', // Casting surgery date to datetime
     ];
 
     public function medicalCondition()

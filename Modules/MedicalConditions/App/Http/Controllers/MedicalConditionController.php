@@ -3,12 +3,13 @@
 namespace Modules\MedicalConditions\App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Modules\Auth\App\Models\User;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Modules\Doctors\App\Models\Doctor;
 use Modules\MedicalConditions\App\Models\MedicalCondition;
 use Modules\SurgicalProcedures\App\Models\SurgicalProcedure;
-use Modules\Doctors\App\Models\Doctor;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 
 class MedicalConditionController extends Controller
 {
@@ -45,11 +46,15 @@ class MedicalConditionController extends Controller
     
   
         if ($user->hasRole('doctor')) {
-            if ($user->id) {
-                $validatedData['doctor_id'] = $user->id;
-            } else {
-                return response()->json(['error' => 'Doctor profile not found for this user.'], 403);
+          
+            $doctorExists = User::where('id', $user->id)->exists();
+        
+            if (!$doctorExists) {
+                return response()->json(['error' => 'User ID not found in users table.'], 403);
             }
+        
+     
+            $validatedData['doctor_id'] = $user->id;
         }
     
         DB::beginTransaction();

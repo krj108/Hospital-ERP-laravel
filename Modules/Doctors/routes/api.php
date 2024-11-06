@@ -32,7 +32,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::delete('/specializations/{specialization}', [SpecializationController::class, 'destroy']);
 
     // Doctors Routes
-    Route::get('/doctors', [DoctorController::class, 'index']);
     Route::post('/doctors', [DoctorController::class, 'store']);
     Route::post('/doctors/{doctor}', [DoctorController::class, 'update']);
     Route::delete('/doctors/{doctor}', [DoctorController::class, 'destroy']);
@@ -46,7 +45,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 
 
 
-Route::middleware(['auth:sanctum', 'role:doctor'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:doctor|admin'])->group(function () {
 
     Route::get('/doctors', [DoctorController::class, 'index']);
     
